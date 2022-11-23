@@ -1,0 +1,49 @@
+#ifndef ACCELERATION_H
+#define ACCELERATION_H
+
+#include <cstdarg>
+
+template<typename T, int D>
+class Acceleration : public Vector<T> {
+public:
+	Acceleration(void);
+	Acceleration(T, T = T(), T = T(), T = T());
+	//Acceleration(T, ...);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Acceleration<T, D>::Acceleration(void)
+	:	Vector<T>(D) {}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Acceleration<T, D>::Acceleration(T a, T b, T c, T d)
+	:	Vector<T>(D) {
+	if(D >= 1) set(a, 0);
+	if(D >= 2) set(b, 1);
+	if(D >= 3) set(c, 2);
+	if(D >= 4) set(d, 3);
+}
+
+/**
+ * 
+ **/
+/*template<typename T, int D>
+Acceleration<T, D>::Acceleration(T dim, ...)
+	:	Vector<T>(D) {
+	va_list va;
+	va_start(va, dim);
+	set(dim, 0);
+	for(int i = 1; i < D; ++i) {
+		T t = (T) va_arg(va, double);
+		set(t, i);
+	}
+	va_end(va);
+}*/
+
+#endif

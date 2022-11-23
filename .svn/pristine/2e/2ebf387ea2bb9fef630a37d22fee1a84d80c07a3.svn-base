@@ -1,0 +1,12 @@
+#include "GUI.h"
+#include <iostream>
+
+int main (int argc, char **argv) {
+	if (GUI::Instance()->initialize(argc, argv)) {
+		GUI::Instance()->execute();
+	} else {
+		std::cout << "\nPress Enter to exit.";
+		std::cin.get();
+	}
+	return 0;
+}

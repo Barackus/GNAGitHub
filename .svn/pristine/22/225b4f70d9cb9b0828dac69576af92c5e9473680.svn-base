@@ -1,0 +1,58 @@
+#ifndef WANDERRULE_H
+#define WANDERRULE_H
+
+#define WANDER_CYCLES	100
+
+#include "../boidrule.h"
+
+#include "../boid.h"
+#include "../boidsystem.h"
+
+/**
+ * 
+ **/
+template<typename T, int D>
+class WanderRule : public BoidRule<T, D> {
+	Vector<T> calculate(void);
+private:
+	int _wait;
+	Vector<T>* _dir;
+public:
+	WanderRule(Boid<T, D>*, BoidSystem<T, D>*);
+	~WanderRule(void);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+WanderRule<T, D>::WanderRule(Boid<T, D>* boid, BoidSystem<T, D>* bs)
+	:	BoidRule<T, D>(boid, bs) , _wait(0),
+		_dir(new Vector<T>(D)) {_weight.set(0.1);}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+WanderRule<T, D>::~WanderRule(void) {
+	delete _dir;
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Vector<T> WanderRule<T, D>::calculate(void) {
+	// New heading.
+	if(_wait <= 0) {
+		_wait = WANDER_CYCLES + rand() % WANDER_CYCLES;
+		for(int i = 0; i < D; ++i)
+			_dir->set((T) (rand() - 0.5 * RAND_MAX), i);
+		_dir->normalize();
+	} else
+		--_wait;
+	// Return the current heading.
+	return _weight * *_dir;
+}
+
+#endif

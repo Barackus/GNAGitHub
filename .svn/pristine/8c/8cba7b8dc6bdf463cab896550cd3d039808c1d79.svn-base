@@ -1,0 +1,144 @@
+#ifndef BOIDSYSTEM_H
+#define BOIDSYSTEM_H
+
+#define NUM_BOIDS	5
+
+#include <vector>
+
+#include "boid.h"
+
+#include "rules/separationrule.h"
+#include "rules/alignmentrule.h"
+#include "rules/cohesionrule.h"
+#include "rules/wanderrule.h"
+
+/**
+ * 
+ **/
+template<typename T, int D>
+class BoidSystem {
+private:
+	std::vector<Boid<T, D>*> _boids;
+public:
+	BoidSystem(void) {}
+public:
+	void update(void);
+	void initialize(void);
+private:
+	void addBoid(Boid<T, D>*);
+	void addRules(void);
+public:
+	std::vector<Position<T, D>> getPositions(void);
+public:
+	Position<T, D> getColonyCenter(ColonyID);
+	std::vector<Boid<T, D>*> getBoidsNear(const Position<T, D>&, const float);
+	Boid<T, D>* getNearestBoid(const Position<T, D>&);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+void BoidSystem<T, D>::update(void) {
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = _boids.begin(); it != _boids.end(); ++it)
+		(*it)->update();
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+void BoidSystem<T, D>::initialize(void) {
+	// Add a number of boids to the system.
+	for(int i = 0; i < NUM_BOIDS; ++i)
+		addBoid(new Boid<T, D>(this));
+	// Add all rules to all boids.
+	addRules();
+}
+
+/**
+ *
+ **/
+template<typename T, int D>
+void BoidSystem<T, D>::addBoid(Boid<T, D>* boid) {
+	_boids.push_back(boid);
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+void BoidSystem<T, D>::addRules(void) {
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = _boids.begin(); it != _boids.end(); ++it) {
+		(*it)->addRule(new SeparationRule<T, D>(*it, this));
+		(*it)->addRule(new AlignmentRule<T, D>(*it, this));
+		(*it)->addRule(new CohesionRule<T, D>(*it, this));
+		(*it)->addRule(new WanderRule<T, D>(*it, this));
+	}
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+std::vector<Position<T, D>> BoidSystem<T, D>::getPositions(void) {
+	std::vector<Position<T, D>> pos;
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = _boids.begin(); it != _boids.end(); ++it)
+		pos.push_back((*it)->getPosition());
+	return pos;
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Position<T, D> BoidSystem<T, D>::getColonyCenter(ColonyID cid) {
+	Position<T, D> avg;
+	// Determine average position.
+	std::vector<Boid<T, D>*>::iterator it;
+	int count = 0;
+	for(it = _boids.begin(); it != _boids.end(); ++it)
+		if((*it)->getColonyID() == cid) {
+			avg += (*it)->getPosition();
+			++count;
+		}
+	avg /= Scalar<T>(T(count));
+	// Return average position.
+	return avg;
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+std::vector<Boid<T, D>*> BoidSystem<T, D>::getBoidsNear(const Position<T, D>& pos, const float dist) {
+	std::vector<Boid<T, D>*> result;
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = _boids.begin(); it != _boids.end(); ++it)
+		if((*it)->getPosition().distance(pos) < dist)
+			result.push_back(*it);
+	return result;
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Boid<T, D>* BoidSystem<T, D>::getNearestBoid(const Position<T, D>& pos) {
+	Boid<T, D>* result = NULL;
+	float dist = FLT_MAX;
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = _boids.begin(); it != _boids.end(); ++it) {
+		float d = *it->getPosition().distance(pos);
+		if(d < dist) {
+			dist = d;
+			result = *it;
+		}
+	}
+	return result;
+}
+
+#endif

@@ -1,0 +1,120 @@
+#ifndef BOIDSYSTEM_H
+#define BOIDSYSTEM_H
+
+#define NUM_BOIDS_0	128
+#define NUM_BOIDS_1	32
+#define NUM_BOIDS_2	4
+
+#define NUM_BOIDS	NUM_BOIDS_0 + NUM_BOIDS_1 + NUM_BOIDS_2
+
+#include <vector>
+
+#include "boid.h"
+
+#include "rules/separationrule.h"
+#include "rules/alignmentrule.h"
+#include "rules/cohesionrule.h"
+#include "rules/wanderrule.h"
+#include "rules/targetrule.h"
+#include "rules/pressurerule.h"
+#include "rules/fearrule.h"
+#include "rules/obstaclerule.h"
+
+template<int D> class DiscreteWorld;
+
+/**
+ * 
+ **/
+template<typename T, int D>
+class BoidSystem {
+private:
+	std::vector<Boid<T, D>*> _boids;
+public:
+	BoidSystem(void) {}
+public:
+	void update(void);
+	void initialize(T = T(), DiscreteWorld<D>* = NULL);
+private:
+	void addBoid(Boid<T, D>*);
+	void addRules(DiscreteWorld<D>* = NULL);
+public:
+	std::vector<Boid<T, D>*> getBoids(void);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+void BoidSystem<T, D>::update(void) {
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = _boids.begin(); it != _boids.end(); ++it)
+		(*it)->update();
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+void BoidSystem<T, D>::initialize(T area, DiscreteWorld<D>* world) {
+	// Add a number of boids to the system.
+	for(int i = 0; i < NUM_BOIDS; ++i) {
+		int cid = i < NUM_BOIDS_0 ? 0 :
+			(i < NUM_BOIDS_0 + NUM_BOIDS_1 ? 1 : 2);
+		addBoid(new Boid<T, D>(this, cid));
+		// Random position.
+		Position<T, D> pos;
+		for(int j = 0; j < D; ++j)
+			pos.set(0.8f * area * ((T(rand()) / RAND_MAX) - T(0.5f)), j);
+		_boids[i]->setPosition(pos);
+		// Random velocity.
+		Velocity<T, D> vel;
+		for(int j = 0; j < D; ++j)
+			vel.set((T(rand()) / RAND_MAX) - T(0.5f), j);
+		_boids[i]->setVelocity(vel);
+	}
+	// Add all rules to all boids.
+	addRules(world);
+	// Let all boids see their neighbors.
+	for(int i = 0; i < NUM_BOIDS; ++i)
+		_boids[i]->initializeNeighbors();
+}
+
+/**
+ *
+ **/
+template<typename T, int D>
+void BoidSystem<T, D>::addBoid(Boid<T, D>* boid) {
+	_boids.push_back(boid);
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+void BoidSystem<T, D>::addRules(DiscreteWorld<D>* world) {
+	ColonyID cid;
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = _boids.begin(); it != _boids.end(); ++it) {
+		cid = (*it)->getColonyID();
+		(*it)->addRule(new SeparationRule<T, D>(*it, this));
+		(*it)->addRule(new AlignmentRule<T, D>(*it, this));
+		if(cid != HOSTILE)
+			(*it)->addRule(new CohesionRule<T, D>(*it, this));
+		(*it)->addRule(new WanderRule<T, D>(*it, this));
+		(*it)->addRule(new TargetRule<T, D>(*it, this));
+		(*it)->addRule(new PressureRule<T, D>(*it, this));
+		if(cid == NEUTRAL)
+			(*it)->addRule(new FearRule<T, D>(*it, this));
+		(*it)->addRule(new ObstacleRule<T, D>(*it, this, world));
+	}
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+std::vector<Boid<T, D>*> BoidSystem<T, D>::getBoids(void) {
+	return _boids;
+}
+
+#endif

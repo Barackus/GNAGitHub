@@ -1,0 +1,72 @@
+#ifndef BOMBRULE_H
+#define BOMBRULE_H
+
+#define BOMB_WEIGHT	6.00f
+#define BOMB_FACTOR	0.20f
+
+#include "../boidrule.h"
+
+#include "../boid.h"
+#include "../boidsystem.h"
+
+#include "../../../World/src/world.h"
+#include "../../../World/src/bomb.h"
+
+/**
+ * 
+ **/
+template<typename T, int D>
+class BombRule : public BoidRule<T, D> {
+private:
+	DiscreteWorld<D>* _world;
+	Vector<T>* calculate(void);
+public:
+	BombRule(Boid<T, D>*, BoidSystem<T, D>*, DiscreteWorld<D>*);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+BombRule<T, D>::BombRule(Boid<T, D>* boid, BoidSystem<T, D>* bs, DiscreteWorld<D>* world )
+	:	BoidRule<T, D>(boid, bs, BOMB_WEIGHT),
+		_world(world) {}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Vector<T>* BombRule<T, D>::calculate(void) {
+	_result->fill(0);
+	if (_world->getBombsActive()) {
+		// Get closest neighbors.
+		std::vector<Bomb<T, D>> bombs = *_world->getBombs();
+		// Calculate escape vector.
+		std::vector<Bomb<T, D>>::iterator it;
+		for(it = bombs.begin(); it != bombs.end(); ++it) {
+			Vector<T> dist = *_boid->getPosition() - (*it).getPosition();
+			T range = (*it).getRange();
+			if(!dist.isNil() && dist.magnitude() < range) {
+				T factor = (T(range) - dist.magnitude()) / T(range);
+				factor *= factor;
+				if(factor < 0) factor = 0;
+				_result->add(dist.normalize(factor));
+			}
+		}
+		// Return normalized and weighted escape vector.
+		if(!_result->isNil())
+			_result->normalize(_weight);
+	}
+	T handicap = _boid->getHandicap() + _result->magnitude() * BOMB_FACTOR;
+	if(handicap > 1)
+		handicap = 1;
+	_boid->setHandicap(handicap);
+	if(handicap == 1)
+		_boid->setHealth(_boid->getHealth() - 3);
+	// Friendlies are bomb-agnostic.
+	if(_boid->getColonyID() == FRIENDLY)
+		_result->fill(0);
+	return _result;
+}
+
+#endif

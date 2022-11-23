@@ -1,0 +1,48 @@
+#ifndef SEPARATIONRULE_H
+#define SEPARATIONRULE_H
+
+#define SEPARATION_RADIUS	2
+
+#include "../boidrule.h"
+
+#include "../boid.h"
+#include "../boidsystem.h"
+
+/**
+ * 
+ **/
+template<typename T, int D>
+class SeparationRule : public BoidRule<T, D> {
+private:
+	Vector<T> calculate(void);
+private:
+	float _radius;
+public:
+	SeparationRule(Boid<T, D>*, BoidSystem<T, D>*);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+SeparationRule<T, D>::SeparationRule(Boid<T, D>* boid, BoidSystem<T, D>* bs)
+	:	BoidRule<T, D>(boid, bs), _radius(1) {}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Vector<T> SeparationRule<T, D>::calculate(void) {
+	Vector<T> result(D);
+	// Get closest neighbors.
+	std::vector<Boid<T, D>*> neighbors =
+		_bs->getBoidsNear(_boid->getPosition(), SEPARATION_RADIUS);
+	// Calculate escape vector.
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = neighbors.begin(); it != neighbors.end(); ++it)
+		result += _boid->getPosition() - (*it)->getPosition();
+	// Return normalized and weighted escape vector.
+	return _weight * result.normalize();
+}
+
+#endif

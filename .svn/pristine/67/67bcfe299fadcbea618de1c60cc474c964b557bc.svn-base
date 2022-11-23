@@ -1,0 +1,33 @@
+#ifndef BOIDS_H
+#define BOIDS_H
+
+// Includes for boid systems.
+#include "boidsystem.h"
+#include "boidrule.h"
+#include "boid.h"
+
+// BoidSystem type definitions.
+typedef BoidSystem<int, 2>		BoidSystem2i;
+typedef BoidSystem<float, 2>	BoidSystem2f;
+typedef BoidSystem<double, 2>	BoidSystem2d;
+typedef BoidSystem<int, 3>		BoidSystem3i;
+typedef BoidSystem<float, 3>	BoidSystem3f;
+typedef BoidSystem<double, 3>	BoidSystem3d;
+
+// BoidRule type definitions.
+typedef BoidRule<int, 2>		BoidRule2i;
+typedef BoidRule<float, 2>		BoidRule2f;
+typedef BoidRule<double, 2>		BoidRule2d;
+typedef BoidRule<int, 3>		BoidRule3i;
+typedef BoidRule<float, 3>		BoidRule3f;
+typedef BoidRule<double, 3>		BoidRule3d;
+
+// Boid type definitions.
+typedef Boid<int, 2>			Boid2i;
+typedef Boid<float, 2>			Boid2f;
+typedef Boid<double, 2>			Boid2d;
+typedef Boid<int, 3>			Boid3i;
+typedef Boid<float, 3>			Boid3f;
+typedef Boid<double, 3>			Boid3d;
+
+#endif

@@ -1,0 +1,38 @@
+#ifndef GRIDMAP_H
+#define GRIDMAP_H
+
+#include <vector>
+#include <string>
+
+class GridMap
+{
+public:
+	GridMap(void);
+	~GridMap(void);
+	bool load();
+
+	inline int getGridSize() {
+		return _gridSize;
+	}
+	inline int getMapWidth() { return _mapWidth; }
+	inline int getMapHeight() { return _mapHeight; }
+	inline void setFilename(std::string filename) {
+		_filename = filename;
+	}
+
+	inline std::string getFilename() {
+		return _filename;
+	}
+
+	const int operator()(int x, int y) const;
+
+protected:
+	std::vector<std::vector<int>>	_grid;
+	std::string	_filename;
+	int			_gridSize;
+	int			_mapHeight;
+	int			_mapWidth;
+	bool		_loaded;
+};
+
+#endif

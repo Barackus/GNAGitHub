@@ -1,0 +1,158 @@
+#include "Evolution.h"
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <time.h>
+#include <map>
+
+using namespace std;
+
+Evolution::Evolution(){
+	//given an initial neural network, evolve it using the settings below: 
+
+	nrOfNodes = 30; //total number of nodes of a single Neural Network.
+	genSize = 100; //the size of each generation.
+	survivorSize = 10; //the number of survivors in each generation.
+	nrOfGens = 100; //the total number of generations before the algorithm stops.
+	allSlices = (genSize * (genSize+1)) / 2;
+
+	//first, we create a new, random population:
+	pop.resize(nrOfGens);
+	vector<individual>::iterator git;
+	vector<double>::iterator git2;
+	for(git = pop.begin(); git != pop.end(); ++git){
+		git->genes.resize(nrOfNodes);
+		git->fitness = 0;
+		for_each(git->genes.begin(), git->genes.end(), 
+			[](double& n) { n = (double) rand() / RAND_MAX;});
+	}
+	//the evolution-loop.
+	timeStamp();
+
+	for(int genNr = 1;genNr <=nrOfGens;genNr++){
+		// evaluate each individual. //takes the most amount of time by far
+		int iNr = 0;
+		for(git = pop.begin(); git != pop.end(); ++git){
+			git->fitness = 0;
+			
+			for(git2 = git->genes.begin(); git2 < git->genes.end(); ++git2 ){
+				git->fitness += *git2; //the fitness is now just simply the weight. the higher the weight, the higher the score.
+			}
+		}
+		// sort according to fitness.
+		sort(pop.begin(),pop.end(),[](individual& a, individual& b) {return a.fitness > b.fitness;});
+		
+		// This loop is for printing out fitnesses or genes after they have been sorted.
+		for(git = pop.begin(); git!= pop.end(); ++git){
+			//cout << git->fitness;
+			for(git2 = git->genes.begin(); git2 < git->genes.end(); ++git2 ){
+				double content = * git2;
+				//cout << content << ",";
+			}
+			//cout << "\n";
+		}
+
+		
+
+		
+
+		
+		
+		// possible mutation of survivors
+		// fill the rest of the population with children of the survivors
+		pop = makeBabies(pop);
+		// possible mutation of children
+		// print results to file, so when aborted, it can continue its work.
+		writeToFile(genNr,pop);
+	}
+}
+
+vector<Evolution::individual> Evolution::makeBabies(vector<individual> pop){
+	vector<individual> newpop = pop; //copy of original pop
+
+	vector<individual>::iterator git;
+	int slice = genSize;
+	int currentSlices = genSize;
+	//child initialisation.
+	vector<double> child;
+	child.resize(nrOfNodes);
+	//indices initialisation.
+	vector<int> indices;
+	indices.resize(nrOfNodes);
+	for(int i = 0; i < nrOfNodes; ++i) indices.at(i) = i; //fill the vector with indices
+
+	//child-making loop.
+	for(int x = survivorSize; x < genSize; ++x){
+		
+		//ranking determines mating chance.
+		int mate = int(rand() / RAND_MAX * allSlices);
+		int otherMate = int(rand() / RAND_MAX * allSlices);
+		int mateIndex = -1;
+		int otherMateIndex = -1;
+		slice = genSize;
+		currentSlices = genSize;
+
+
+		for(int y = 0; y < genSize; ++y){ //this loop is to link the random number to an actual index.
+			if(mate < currentSlices){
+				mateIndex = y;
+			}
+			if(otherMate < currentSlices){
+				otherMateIndex = y;
+			}
+			if(mateIndex != -1 && otherMateIndex != -1) break;
+			slice--;
+			currentSlices += slice;
+		}
+
+		random_shuffle(indices.begin(),indices.end()); //shuffle the indices
+		for(int i = 0; i< nrOfNodes/2; ++i) newpop.at(x).genes.at(i) = pop.at(mateIndex).genes.at(indices.at(i)); 
+		for(int i = nrOfNodes/2; i<nrOfNodes; ++i) newpop.at(x).genes.at(i) = pop.at(otherMateIndex).genes.at(indices.at(i)); 
+		
+		mateIndex,otherMateIndex = -1;
+
+	}
+	return newpop;
+}
+
+//Evolution::individual Evolution::makeBaby(individual a, individual b){
+	//return individual c;
+	
+//}
+void Evolution::timeStamp(){
+	time_t now;
+	char the_date[24];
+	the_date[0] = '\0';
+	now = time(NULL);
+	if (now != -1) strftime(the_date, 24, "%d %B %Y %H:%M:%S", localtime(&now));
+	
+	ofstream f;
+	f.open ("EVOLUTION_RESULTS.txt", ios::app);
+	f << "Started at " << the_date << "\n";
+	f.close();
+}
+
+void Evolution::writeToFile(int nr,vector<individual> p){
+	ofstream f;
+	f.open ("EVOLUTION_RESULTS.txt", ios::app);
+	for(int i = 0; i<genSize; ++i){
+		for(int j = 0; j<nrOfNodes; ++j){
+
+		}
+	}
+	f << nr <<"\n";
+	f.close();
+}
+
+Evolution::~Evolution(){
+
+}
+
+//returns a random genome.
+std::vector<double> Evolution::createRandomGenome(){
+	 std::vector<double> v;
+	 v.assign(nrOfNodes,rand());
+	 return v;
+}
+
+

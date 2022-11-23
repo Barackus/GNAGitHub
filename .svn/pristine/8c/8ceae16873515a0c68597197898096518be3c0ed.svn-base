@@ -1,0 +1,29 @@
+#include "AddressTranslator.h"
+
+using namespace std;
+
+/**
+ * Adds a new pair of pointers to the mapping.
+ * @param old_ptr	The old pointer.
+ * @param new_ptr	The new pointer.
+ **/
+void AddressTranslator::addAddress(void* old_ptr, void* new_ptr) {
+	_ptr.insert(make_pair(old_ptr, new_ptr));
+}
+
+/**
+ * Tries to find a new pointer that corresponds
+ * to the old one.
+ * @param old_ptr The old pointer.
+ **/
+void* AddressTranslator::findAddress(void* old_ptr) {
+	map<void*, void*>::iterator it = _ptr.find(old_ptr);
+	return it != _ptr.end() ? it->second : NULL;
+}
+
+/**
+ * Rewires the old pointer to be the new one.
+ **/
+void AddressTranslator::reconnect(void*& ptr) {
+	ptr = findAddress(ptr);
+}

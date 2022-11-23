@@ -1,0 +1,13 @@
+#ifndef NEURALNETWORK_H
+#define NEURALNETWORK_H
+
+// Include all types of Artificial Neural Network.
+#include "multilayerperceptron.h"
+
+// Typedefs for multilayer perceptrons.
+typedef MultilayerPerceptron<2> MLPerceptron2;
+typedef MultilayerPerceptron<3> MLPerceptron3;
+typedef MultilayerPerceptron<4> MLPerceptron4;
+typedef MultilayerPerceptron<5> MLPerceptron5;
+
+#endif

@@ -1,0 +1,64 @@
+#include "overmindfitnessfunctor.h"
+
+#define CYCLES	3600 // 5 minutes.
+#define DEAD	-10
+#define ALIVE	5
+#define SAVED	20
+
+/**
+ * 
+ **/
+OvermindFitnessFunctor::OvermindFitnessFunctor(DiscreteWorld2D* world, BoidSystem2f* bs, MLPerceptron5d* mlp)
+	:	_world(world),
+		_bs(bs),
+		_mlp(mlp) {}
+
+/**
+ * 
+ **/
+double OvermindFitnessFunctor::operator()(individual& ind) {
+	// Prepare multilayer perceptron.
+	_mlp->setWeights(ind.genes);
+	// Prepare boid system.
+	_bs->reset();
+	// Run the trial.
+	for(int i = 0; i < CYCLES; ++i) {
+		Vectord input(84);
+		//Read positions for brain.
+		vector<Boid<float, 2>*> _Boids = _bs->getBoids();
+		unsigned int nrOfBoids = _Boids.size();
+		for(unsigned int i = 0; i < nrOfBoids ; ++i){
+			Position2f* pos = _Boids[i]->getPosition();
+			input.set(pos->get(0),i); //x position
+			input.set(pos->get(1),i); //y position
+		}
+		// the first safezone position.
+		Position2f* safezone = _world->getSafezones()->at(0);
+		input.set(safezone->get(0),nrOfBoids);// x position of safezone
+		input.set(safezone->get(1),nrOfBoids+1);// y position of safezone
+
+		// the first bomb position.
+		Position2f bombpos = _world->getBombs()->at(0).getPosition();
+		input.set(bombpos.get(0),nrOfBoids+2);// x position of bomb
+		input.set(bombpos.get(1),nrOfBoids+3);// y position of bomb
+		
+			
+		// think...
+		//Vectord output = _mlp->process(input);
+		// Update brainRule.
+			//_bs->getBoids()[1]->addRule();*/
+		// Update boids.
+		_bs->update();
+	}
+	// Evaluate trial.
+	int total = _bs->countBoids(NEUTRAL);
+	int alive = _bs->countBoids(NEUTRAL, true);
+	int dead = total - alive;
+	int saved = _bs->getNrOfSavedBoids();
+	int score = dead * DEAD + alive * ALIVE + saved * SAVED;
+	// Casualties (-10)
+	// Total health (100 * total / begin)
+	// Survivors (+5)
+	// Rescued (+20)
+	return double(score);
+}

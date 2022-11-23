@@ -1,0 +1,73 @@
+#include "GridMap.h"
+
+#include "Common\Serializable\SerialReaderASCII.h"
+#include <fstream>
+
+using namespace std;
+
+GridMap::GridMap(void)
+{
+	_loaded = false;
+}
+
+GridMap::~GridMap(void)
+{
+}
+
+bool GridMap::load () {
+	if (_filename.size()>0) {
+		ifstream in = ifstream(_filename, ios::out);
+		// Prepare appropriate SerialReader.
+		SerialReaderASCII sr = SerialReaderASCII(&in);
+
+		try {
+			sr.read("gridSize", _gridSize);
+		} catch(string s) {
+			cout << s;
+			return false;
+		}
+		
+		try {
+			sr.read("mapHeight", _mapHeight);
+		} catch(string s) {
+			cout << s;
+			return false;
+		}
+
+		try {
+			sr.read("mapWidth", _mapWidth);
+		} catch(string s) {
+			cout << s;
+			return false;
+		}
+		char cell;
+		// Now read the map grid data
+		for (int y = 0; y < _mapHeight; ++y) {
+			vector<int> row;
+			for (int x = 0; x < _mapWidth; ++x) {
+				
+				if (!in.eof()) {
+					in >> cell;
+					row.push_back(cell-48);				
+
+				} else {
+					cout << "Map data missing at (y,x): " << ++y << ", " << ++x << "\n";
+					return false;
+				}
+			}
+			_grid.push_back(row);
+		}
+
+
+		_loaded = true;
+		return true;
+	} else {
+		throw "No map filename supplied";
+	}
+	return false;
+}
+
+const int GridMap::operator() (int x, int y) const {
+	if (!_loaded) throw "Map not loaded";
+	return _grid[y][x];
+}

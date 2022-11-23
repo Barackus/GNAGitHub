@@ -1,0 +1,37 @@
+#ifndef SERIALREADERASCII_H
+#define SERIALREADERASCII_H
+
+#include <iostream>
+#include <string>
+
+#include "SerialReader.h"
+
+/**
+ * A dedicated SerialReader for deserializing from
+ * ASCII based streams.
+ **/
+class SerialReaderASCII : public SerialReader {
+public:
+	SerialReaderASCII(std::istream* stream);	// Constructor.
+	~SerialReaderASCII(void) {}					// Destructor.
+public:
+	/**
+	 * The read functions are used to deserialize a
+	 * number of basic data types from the stream.
+	 **/
+	void read(const std::string, bool&);
+	void read(const std::string, char&);
+	void read(const std::string, short&);
+	void read(const std::string, int&);
+	void read(const std::string, long&);
+	void read(const std::string, float&);
+	void read(const std::string, double&);
+	void read(const std::string, std::string&);
+	void read(const std::string, void*&);
+
+	void read(char&);
+
+	void checkKey(const std::string key);
+};
+
+#endif

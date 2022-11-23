@@ -1,0 +1,40 @@
+#include "overmindfitnessfunctor.h"
+
+#define CYCLES	3600 // 5 minutes.
+
+/**
+ * 
+ **/
+OvermindFitnessFunctor::OvermindFitnessFunctor(DiscreteWorld2D* world, BoidSystem2f* bs, MLPerceptron5d* mlp)
+	:	_world(world),
+		_bs(bs),
+		_mlp(mlp) {}
+
+/**
+ * 
+ **/
+double OvermindFitnessFunctor::operator()(individual& ind) {
+	// Prepare multilayer perceptron.
+	_mlp->setWeights(ind.genes);
+	// Prepare boid system.
+	_bs->reset();
+	// Run the trial.
+	for(int i = 0; i < CYCLES; ++i) {
+		/*Vectord input(84);
+		// Read positions for brain.
+			_bs->getBoids()[0]->getPosition()->get(0);
+		// Update brain.
+		Vectord output = _mlp->process(input);
+		// Update brainRule.
+			_bs->getBoids()[1]->addRule();*/
+		// Update boids.
+		_bs->update();
+	}
+	// Evaluate trial.
+	// TODO.
+	// Casualties (-10)
+	// Total health (100 * total / begin)
+	// Survivors (+5)
+	// Rescued (+20)
+	return double(rand()) / RAND_MAX;
+}

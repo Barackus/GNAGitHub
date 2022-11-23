@@ -1,0 +1,36 @@
+#include <iostream>
+
+#include "neuralnetwork.h"
+
+using namespace std;
+
+int main(void) {
+
+	cout << "-----------------------" << endl;
+	cout << " Multilayer Perceptron " << endl;
+	cout << "-----------------------" << endl << endl;
+
+	// Prepare input and output containers.
+	Vectorf input(4), output(3);
+	input.set(1.0f, 0);
+	input.set(0.5f, 1);
+	input.set(2.5f, 2);
+	input.set(0.5f, 3);
+	cout << "INPUT:" << endl << input << endl << endl;
+
+	// Prepare multilayer perceptron with random weights.
+	MLPerceptron5f mp(4, 8, 6, 8, 3);
+	mp.randomize();
+
+	// Clamp inputs and calculate output.
+	output = mp.process(input);
+	cout << "OUTPUT:" << endl << output << endl << endl;
+
+	// Set all weights to some value (import test).
+	std::vector<float> w(4 * 8 + 8 * 6 + 6 * 8 + 8 * 3);
+	std::fill(w.begin(), w.end(), 8.0f);
+	mp.setWeights(w);
+
+	system("pause");
+	return 0;
+}

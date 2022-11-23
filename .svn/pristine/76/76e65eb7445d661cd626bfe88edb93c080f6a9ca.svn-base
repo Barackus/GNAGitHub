@@ -1,0 +1,19 @@
+#ifndef ADDRESSTRANSLATOR_H
+#define ADDRESSTRANSLATOR_H
+
+#include <map>
+
+/**
+ * An AddressTranslator keeps a map of pointer pairs
+ * that can be used to reconnect objects after (de)serialization.
+ **/
+class AddressTranslator {
+public:
+	void addAddress(void*, void*);			// Adds a pointer pair to the lookup table.
+	void* findAddress(void*);				// Finds a new pointer for an old one.
+	void reconnect(void*&);					// Rewires the old pointer to be the new one.
+private:
+	std::map<void*, void*> _ptr;			// Pointer lookup table.
+};
+
+#endif

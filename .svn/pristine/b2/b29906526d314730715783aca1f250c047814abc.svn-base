@@ -1,0 +1,10 @@
+#include "SerialReader.h"
+
+using namespace std;
+
+/**
+ * Constructor.
+ * @param stream The stream to deserialize from
+ **/
+SerialReader::SerialReader(istream* stream)
+	: _stream(stream) {}

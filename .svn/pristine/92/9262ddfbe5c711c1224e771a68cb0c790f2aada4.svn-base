@@ -1,0 +1,40 @@
+#ifndef EVOLUTION_H
+#define EVOLUTION_H
+
+#include <vector>
+
+using namespace std;
+
+class Evolution {
+
+public:
+	Evolution(void);
+	~Evolution(void);
+
+private:
+	int nrOfNodes; //total number of nodes of a single Neural Network.
+	int genSize; //the size of each generation
+	int survivorSize; //the number of survivors in each generation
+	int nrOfGens; //the total number of generations before the algorithm stops.
+	int allSlices; //the total number of slices to mate defined by genSize(genSize+1) / 2
+	
+
+	struct individual {
+	vector<double> genes; //the initial values of all nodes (with size nrOfNodes).
+	double fitness;
+	};
+
+	vector<vector<double>> simplepop; //the current entire population
+	vector<individual> pop;
+
+	
+	vector<double> createRandomGenome();
+	vector<individual> makeBabies(vector<individual> pop);
+	//individual makeBaby(individual, individual);
+	void writeToFile(int GenerationNumber,vector<individual> pop);
+	void timeStamp();
+
+
+};
+
+#endif

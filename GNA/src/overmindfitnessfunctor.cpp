@@ -1,0 +1,81 @@
+#include "cbase.h"
+#include "overmindfitnessfunctor.h"
+
+using namespace std;
+
+#define CYCLES	3600 // 5 minutes.
+#define DEAD	-10
+#define ALIVE	5
+#define SAVED	20
+#define HEALTH	400
+
+/**
+ * 
+ **/
+OvermindFitnessFunctor::OvermindFitnessFunctor(DiscreteWorld2D* world, BoidSystem2f* bs, MLPerceptron5d* mlp)
+	:	_world(world),
+		_bs(bs),
+		_mlp(mlp) {}
+
+/**
+ * 
+ **/
+double OvermindFitnessFunctor::operator()(individual& ind) {
+	// Prepare multilayer perceptron.
+	_mlp->setWeights(ind.genes);
+	// Prepare boid system.
+	_bs->reset();
+	// Run the trial.
+	pmVectord input(84), output(16);
+	for(int i = 0; i < CYCLES; ++i) {
+		//Read positions for brain.
+		vector<Boid<float, 2>*> _Boids = _bs->getBoids();
+		unsigned int nrOfBoids = _Boids.size();
+		for(unsigned int i = 0; i < nrOfBoids ; ++i){
+			pmPosition2f* pos = _Boids[i]->getpmPosition();
+			input.set(pos->get(0),i); //x position
+			input.set(pos->get(1),i); //y position
+		}
+		// the first safezone position.
+		pmPosition2f* safezone = _world->getSafezones()->at(0);
+		input.set(safezone->get(0),nrOfBoids);// x position of safezone
+		input.set(safezone->get(1),nrOfBoids+1);// y position of safezone
+
+		// the first bomb position.
+		pmPosition2f bombpos = _world->getBombs()->at(0).getpmPosition();
+		input.set(bombpos.get(0),nrOfBoids+2);// x position of bomb
+		input.set(bombpos.get(1),nrOfBoids+3);// y position of bomb
+		
+		// Think.
+		output = _mlp->process(input);
+
+		// Update brainRules.
+		vector<Boid2f*> boids = _bs->getBoids(FRIENDLY);
+		vector<Boid2f*>::iterator it;
+		int counter = -1;
+		pmPosition2f target;
+		for(it = boids.begin(); it != boids.end(); ++it) {
+			BrainRule<float, 2>* brain = (*it)->getBrain();
+			target.set(float(output.get(++counter)), 0);
+			target.set(float(output.get(++counter)), 1);
+			brain->setTarget(target);
+		}
+
+		// Update boids.
+		_bs->update();
+	}
+	// Evaluate trial.
+	int total = _bs->countBoids(NEUTRAL);
+	int alive = _bs->countBoids(NEUTRAL, true);
+	int dead = total - alive;
+	int saved = _bs->getNrOfSavedBoids();
+	int totalHealth = _bs->getTotalBoidHealth(NEUTRAL);
+	int maxTotalHealth = total * 100;
+	float health = float(totalHealth / maxTotalHealth);
+	//
+	std::cout << "total health is: " << totalHealth << endl; 
+	//std::cout << "D: " << dead << ", A: " << alive << ", S: " << saved;
+	
+	int score = dead * DEAD + alive * ALIVE + saved * SAVED + int(health * HEALTH);
+	return double(score);
+}

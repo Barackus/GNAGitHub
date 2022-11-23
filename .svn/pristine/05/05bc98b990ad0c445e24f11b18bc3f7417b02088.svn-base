@@ -1,0 +1,317 @@
+#ifndef DISCRETEWORLD_H
+#define DISCRETEWORLD_H
+
+#include <fstream>
+#include <cstdarg>
+
+#include "../../PhysMath/src/physmath.h"
+#include "valvemap.h"
+
+enum Material { AIR, WALL };
+
+/**
+ * 
+ **/
+template<int DIM>
+class DiscreteWorld : public Tensor<int> {
+private:
+	Matrix<Acceleration<float, DIM>*>* _wall_proximity;
+public:
+	DiscreteWorld(void);
+	DiscreteWorld(const std::string&);
+	DiscreteWorld(int, int);
+	DiscreteWorld(int, int, int);
+	~DiscreteWorld(void);
+public:
+	void load(const std::string&);
+	void save(const std::string&);
+	void exportVMF(const std::string&);
+public:
+	void calculateWallProximity(int);
+	Acceleration<float, DIM>* getProximity(const Position<float, DIM>&);
+	inline Matrix<Acceleration<float, DIM>*>* getWallProximities(void) const { return _wall_proximity; }
+private:
+	void processDistanceToWall(int, int, int, int, int, float&);
+public:
+	inline const int width(void) const	{ return _dim[0]; }
+	inline const int height(void) const	{ return _dim[1]; }
+	inline const int depth(void) const	{ return _dim[2]; }
+public:
+	const int operator()(int, int) const;
+	const int operator()(int, int, int) const;
+};
+
+/**
+ * 
+ **/
+template<int DIM>
+DiscreteWorld<DIM>::DiscreteWorld(void)
+	:	Tensor<int>(DIM, 1, 1, 1),
+		_wall_proximity(NULL) {}
+
+/**
+ * 
+ **/
+template<int DIM>
+DiscreteWorld<DIM>::DiscreteWorld(const std::string& filename)
+	:	Tensor<int>(DIM, 1, 1, 1),
+		_wall_proximity(NULL) {
+	load(filename);
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+DiscreteWorld<DIM>::DiscreteWorld(int w, int h)
+	:	Tensor<int>(DIM, w, h),
+		_wall_proximity(NULL) {}
+
+/**
+ * 
+ **/
+template<int DIM>
+DiscreteWorld<DIM>::DiscreteWorld(int w, int h, int d)
+	:	Tensor<int>(DIM, w, h, d),
+		_wall_proximity(NULL) {}
+
+/**
+ * 
+ **/
+template<int DIM>
+DiscreteWorld<DIM>::~DiscreteWorld(void) {
+	// Clean up our wall proximity data.
+	if(_wall_proximity != NULL) {
+		int w = _wall_proximity->getNumColumns(), h = _wall_proximity->getNumRows();
+		for(int y = 0; y < h; ++y)
+			for(int x = 0; x < w; ++x)
+				delete _wall_proximity->get(x, y);
+		delete _wall_proximity;
+	}
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+void DiscreteWorld<DIM>::load(const std::string& filename) {
+	cout << "Loading world data from: " << filename << "... ";
+	int d, count = 1, wallres = 0;
+	// Open file.
+	ifstream in(filename);
+	if(in.is_open()) {
+		// Ensure same dimensionality.
+		in >> d;
+		if(d != DIM)
+			throw;
+		// Read dimensions.
+		_dim.resize(d);
+		for(int i = 0; i < d; ++i) {
+			in >> _dim[i];
+			count *= _dim[i];
+		}
+		// Read wall proximity map resolution.
+		in >> wallres;	// 0 = no proximity data.
+		// Read wall data.
+		_data.resize(count);
+		for(int i = 0; i < count; ++i)
+			in >> _data[i];
+		// Read wall proximity data (if any).
+		if(wallres > 0) {
+			if(_wall_proximity != NULL) {
+				int w = _wall_proximity->getNumColumns(), h = _wall_proximity->getNumRows();
+				for(int y = 0; y < h; ++y)
+					for(int x = 0; x < w; ++x)
+						delete _wall_proximity->get(x, y);
+				delete _wall_proximity;
+			}
+			int ww = width() * wallres, wh = height() * wallres;
+			_wall_proximity = new Matrix<Acceleration<float, DIM>*>(ww, wh);
+			Acceleration<float, DIM>* acc = NULL;
+			float tmp;
+			for(int y = 0; y < wh; ++y)
+				for(int x = 0; x < ww; ++x) {
+					acc = new Acceleration<float, DIM>;
+					for(int i = 0; i < DIM; ++i) {
+						in >> tmp;
+						acc->set(tmp, i);
+					}
+					_wall_proximity->set(acc, x, y);
+				}
+		}
+	} else
+		throw;
+	in.close();
+	cout << "Done." << endl;
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+void DiscreteWorld<DIM>::save(const std::string& filename) {
+	cout << "Saving world data to: " << filename << "... ";
+	ofstream out(filename);
+	if(out.is_open()) {
+		// Write dimensionality.
+		int d = getOrder();
+		out << d << " ";
+		// Write dimensions.
+		for(int i = 0; i < d; ++i)
+			out << _dim[i] << " ";
+		// Write wall proximity resolution (if any).
+		if(_wall_proximity != NULL)
+			out << (_wall_proximity->getNumColumns() / width());
+		out << endl;
+		// Write 2d data in readable form.
+		if(d == 2)
+			for(int y = 0; y < _dim[1]; ++y) {
+				for(int x = 0; x < _dim[0]; ++x)
+					out << _data[y * _dim[0] + x] << " ";
+				out << endl;
+			}
+		// Other dimensions are written out linearly.
+		else {
+			std::vector<int>::iterator it;
+			for(it = _data.begin(); it != _data.end(); ++it)
+				out << *it << " ";
+		}
+		// Write wall proximity data (if any).
+		if(_wall_proximity != NULL) {
+			int w = _wall_proximity->getNumColumns();
+			int h = _wall_proximity->getNumRows();
+			for(int y = 0; y < h; ++y)
+				for(int x = 0; x < w; ++x)
+					for(int i = 0; i < DIM; ++i)
+						out << _wall_proximity->get(x, y)->get(i) << " ";
+		}
+	} else
+		throw;
+	out.close();
+	cout << "Done." << endl;
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+void DiscreteWorld<DIM>::exportVMF(const std::string& filename) {
+	ValveMap<DIM> vmf(this);
+	vmf.save(filename);
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+Acceleration<float, DIM>* DiscreteWorld<DIM>::getProximity(const Position<float, DIM>& pos) {
+	int res = _wall_proximity->getNumColumns() / width();
+	int x = int((pos.get(0) + 0.5f * width()) * res);
+	int y = int((0.5f * height() - pos.get(1)) * res);
+	// FIXME: Ugly h4x :-(
+	x = x <= 0 ? 0 : (x >= width() * res ? width() * res - 1 : x);
+	y = y <= 0 ? 0 : (y >= height() * res ? height() * res - 1 : y);
+	//cout << x << " " << y << endl;
+	return _wall_proximity->get(x, y);
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+void DiscreteWorld<DIM>::calculateWallProximity(int res) {
+	cout << "Pre-computing wall proximity data... ";
+	int w = width() * res, h = height() * res;
+	// Clean up old data.
+	if(_wall_proximity != NULL) {
+		delete _wall_proximity;
+	}
+	// Allocate new matrix.
+	_wall_proximity = new Matrix<Acceleration<float, DIM>*>(w, h);
+	// Calculate proximities.
+	for(int y = 0; y < h; ++y) {
+		for(int x = 0; x < w; ++x) {
+			_wall_proximity->set(new Acceleration<float, DIM>, x, y);
+			int wx = x / res, wy = y / res;
+			// Distance is zero if we're inside a wall.
+			if(get(wx, wy) == WALL)
+				continue;
+			// Otherwise, find the nearest wall.
+			else {
+				float dist = FLT_MAX;
+				for(int i = 0; i < height(); ++i)
+					for(int j = 0; j < width(); ++j)
+						// Calculate distance to walls.
+						if(get(j, i) == WALL)
+							processDistanceToWall(x, y, j, i, res, dist);
+			}
+		}
+	}
+	cout << "Done." << endl;
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+void DiscreteWorld<DIM>::processDistanceToWall(int x, int y, int wx, int wy, int res, float& dist) {
+	float step = 1.0f / res, d;
+	float hstep = step * 0.5f, fwx = float(wx), fwy = float(wy);
+	float px = (float(x) + 0.5f) * step, py = (float(y) + 0.5f) * step;
+	Acceleration<float, DIM>* acc = _wall_proximity->get(x, y);
+	Position<float, DIM> *pb, *pw;
+	// Decide which section we're in and determine distance.
+	if(py < wy) {							// UPPER SECTION.
+		if(px < wx) {						// Upper left.
+			pb = new Position<float, DIM>(px, py), pw = new Position<float, DIM>(fwx, fwy);
+		} else if(px > wx + 1) {			// Upper right.
+			pb = new Position<float, DIM>(px, py), pw = new Position<float, DIM>(fwx + 1, fwy);
+		} else {							// Upper center.
+			pb = new Position<float, DIM>(0, py), pw = new Position<float, DIM>(0, fwy);
+		}
+	} else if(py >= wy && py <= wy + 1) {	// MIDDLE SECTION.
+		if(px < wx) {						// Middle left.
+			pb = new Position<float, DIM>(px, 0), pw = new Position<float, DIM>(fwx, 0);
+		} else if(px > wx + 1) {			// Middle right.
+			pb = new Position<float, DIM>(px, 0), pw = new Position<float, DIM>(fwx + 1, 0);
+		} else {							// Middle center.
+			pb = new Position<float, DIM>(px, py), pw = new Position<float, DIM>(fwx + 0.5f, fwy + 0.5f);
+		}
+	} else {								// LOWER SECTION.
+		if(px < wx) {						// Lower left.
+			pb = new Position<float, DIM>(px, py), pw = new Position<float, DIM>(fwx, fwy + 1);
+		} else if(px > wx + 1) {			// Lower right.
+			pb = new Position<float, DIM>(px, py), pw = new Position<float, DIM>(fwx + 1, fwy + 1);
+		} else {							// Lower center.
+			pb = new Position<float, DIM>(0, py), pw = new Position<float, DIM>(0, fwy + 1);
+		}
+	}
+	// Handle changes.
+	d = pb->distance(*pw);
+	if(d < dist) {
+		dist = d;
+		pb->subtract(*pw);
+		for(int i = 0; i < DIM; ++i)
+			acc->set(pb->get(i), i);
+	}
+	// Clean up.
+	delete pb, pw;
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+const int DiscreteWorld<DIM>::operator()(int x, int y) const {
+	return get(x, y);
+}
+
+/**
+ * 
+ **/
+template<int DIM>
+const int DiscreteWorld<DIM>::operator()(int x, int y, int z) const {
+	return get(x, y, z);
+}
+
+#endif

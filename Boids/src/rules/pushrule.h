@@ -1,0 +1,63 @@
+#ifndef PUSHRULE_H
+#define PUSHRULE_H
+
+#define PUSH_WEIGHT	4.00f
+#define PUSH_RADIUS	2.0f
+#define PUSH_FACTOR	0.10f
+
+#include "../boidrule.h"
+
+#include "../boid.h"
+#include "../boidsystem.h"
+
+/**
+ * 
+ **/
+template<typename T, int D>
+class PushRule : public BoidRule<T, D> {
+private:
+	pmVector<T>* calculate(void);
+public:
+	PushRule(Boid<T, D>*, BoidSystem<T, D>*);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+PushRule<T, D>::PushRule(Boid<T, D>* boid, BoidSystem<T, D>* bs)
+	:	BoidRule<T, D>(boid, bs, PUSH_WEIGHT) {}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+pmVector<T>* PushRule<T, D>::calculate(void) {
+	_result->fill(0);
+	// Get closest neighbors.
+	std::vector<Boid<T, D>*> neighbors =
+		_boid->getNeighbors(PUSH_RADIUS, FRIENDLY);
+	// Calculate escape vector.
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = neighbors.begin(); it != neighbors.end(); ++it) {
+		if((*it)->isAlive()) {
+			pmVector<T> dist = *_boid->getpmPosition() - *(*it)->getpmPosition();
+			if(!dist.isNil()) {
+				T factor = (T(PUSH_RADIUS) - dist.magnitude()) / T(PUSH_RADIUS);
+				factor *= factor;
+				if(factor < 0) factor = 0;
+				_result->add(dist.normalize(factor));
+			}
+		}
+	}
+	// Return normalized and weighted escape vector.
+	if(!_result->isNil())
+		_result->normalize(_weight);
+	T handicap = _boid->getHandicap() + _result->magnitude() * PUSH_FACTOR;
+	if(handicap > 1)
+		handicap = 1;
+	_boid->setHandicap(handicap);
+	return _result;
+}
+
+#endif

@@ -1,0 +1,222 @@
+// Games & Agents 2011/2012 Term 4
+// Author: S. Rosman, studentnr 3754014
+// May 2012
+
+#include "GUI.h"
+#include <stdlib.h>
+#include "Libs/glut.h"
+#include <string>
+#include <iostream>
+
+using namespace std;
+
+GUI* GUI::instance = NULL;
+
+GUI::GUI() {
+	_screenwidth = 600;
+	_screenheight = 500;
+	_map.setFilename("sampleMap.txt");
+}
+
+GUI::~GUI() {
+}
+
+void GUI::execute() {
+	glutMainLoop();
+}
+
+// GLUT popup menu item definitions
+#define OPTION_DEGREE2 12
+#define OPTION_DEGREE3 13
+#define OPTION_DEGREE4 14
+#define OPTION_DEGREE5 15
+#define OPTION_DEGREE6 16
+#define OPTION_QUIT 27
+
+
+void GUI::displayText(float x, float y, string text) {
+	// Outputs text using GLUT, at the specyfied location.
+
+	char c[100];
+	memset(c,0,sizeof(c));
+	strcpy_s(c, text.data());
+  
+	glRasterPos2f(x, y);
+	for (int i=0; i < (int)strlen(c); i++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c[i]);
+	}
+}
+
+
+void GUI::drawMap() {
+	int xOff = 20;
+	int yOff = 40;
+
+	cout << _map(1, 1);
+	int gs = _map.getGridSize();
+	float gsh = 0.5 * gs;
+	for (int y = 0; y < _map.getMapHeight(); ++y) {
+		for(int x = 0; x< _map.getMapWidth(); ++x){
+			int cell = _map(x,y);
+			if (cell!=0) {
+				glColor3f(0,1,0);
+				glBegin(GL_LINE_LOOP);
+				glVertex2f( x*(gs+1) - gsh + xOff, _screenheight - (y*(gs+1) - gsh + yOff));
+				glVertex2f( x*(gs+1) + gsh + xOff, _screenheight - (y*(gs+1) - gsh + yOff));
+				glVertex2f( x*(gs+1) + gsh + xOff, _screenheight - (y*(gs+1) + gsh + yOff));
+				glVertex2f( x*(gs+1) - gsh + xOff, _screenheight - (y*(gs+1) + gsh + yOff));
+				glEnd();
+			}
+		}
+	}
+}
+
+void GUI::drawBoids() {
+	vector<Position2f>::iterator it;
+	vector<Position2f> boids = bs.getPositions();
+	
+	int xOff = _screenwidth/2;
+	int yOff = _screenheight/2;
+
+	glPointSize(2);
+	for (it = boids.begin(); it!=boids.end(); ++it) {
+		glColor3f(0,1,0);
+		glBegin(GL_POINTS);
+		glVertex2f(xOff + it->get(0)* 60, yOff + it->get(1) * 60);
+		//cout << it->get(0) << ", " << it->get(1) << "\t";
+		glEnd();
+	}
+}
+
+void GUI::draw (void) {
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    glMatrixMode( GL_PROJECTION );
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho( 0.0, _screenwidth, 0.0, _screenheight, -1.0, 1.0 );
+    glMatrixMode( GL_MODELVIEW );
+    glPushMatrix();
+    glLoadIdentity();
+
+	// Display the current Polinomial degree on the screen
+	glColor3f(0.8,0.8,0.8);
+	string info = "Mode: ";
+	displayText(4, _screenheight - 14, info);
+
+	//drawMap();
+	drawBoids();
+
+	// Output everything correctly to the screen
+    glMatrixMode( GL_PROJECTION );
+    glPopMatrix();
+    glMatrixMode( GL_MODELVIEW );
+    glPopMatrix();
+	glutSwapBuffers();
+}
+
+void GUI::update() {
+	bs.update();
+	//cout << "updated\n";
+	glutPostRedisplay();
+}
+
+void GUI::windowResize (int width, int height) {
+	// Adjust the global screen size variables,
+	// otherwise points will be added in unexpected positions
+	_screenwidth = width;
+	_screenheight = height;
+
+    glViewport( 0, 0, (GLsizei) width, (GLsizei) height);
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity ();
+    gluPerspective( 60, (GLfloat) width /(GLfloat) height , 0.10, 1000.0 );
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
+}
+
+void GUI::keyInputHandler(unsigned char key, int x, int y) {
+	switch (key) {
+		case 27:
+		case 'q':
+			// Exit application on Escape or 'q' key
+			exit(0);
+			break;
+	}
+}
+
+
+void GUI::mouseInputHandler(int button, int state, int mx, int my) {
+	// Calculate the y axis according to the world location
+	my = _screenheight - my;
+	
+	// Create or update a control point
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		glutPostRedisplay();
+	}
+}
+
+
+void GUI::mouseMotionHandler(int mx, int my) {
+	my = _screenheight - my;
+}
+
+
+void GUI::processMenuEvents(int option) {
+	// Handle chosen menu options
+	switch (option) {
+		
+		case OPTION_DEGREE2:
+			break;
+		case OPTION_DEGREE3:
+			break;
+		case OPTION_DEGREE4:
+			break;
+		case OPTION_DEGREE5:
+			break;
+		case OPTION_DEGREE6:
+			break;
+		case OPTION_QUIT:
+			exit(0); break;
+
+	}
+}
+
+
+void GUI::createGLUTMenus() {
+
+	int menu, submenu;
+	// Create a submenu for selecting the Polyniomal degree
+	submenu = glutCreateMenu(processMenuEventsCallback);
+	glutAddMenuEntry("Sub 1",OPTION_DEGREE2);
+	glutAddMenuEntry("Sub 2",OPTION_DEGREE3);
+	glutAddMenuEntry("Sub 3",OPTION_DEGREE4);
+	glutAddMenuEntry("Sub 4",OPTION_DEGREE5);
+	glutAddMenuEntry("Sub 5",OPTION_DEGREE6);
+
+	menu = glutCreateMenu(processMenuEventsCallback);
+	
+	// Add the options to the menu
+	glutAddSubMenu("Submenu",submenu);
+	glutAddMenuEntry("Quit program [q]", OPTION_QUIT);
+	
+	// Attach the menu to the right button
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
+
+bool GUI::initialize (int argc, char **argv) {
+	glutInit(&argc, argv);
+	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );
+	glutInitWindowSize (_screenwidth, _screenheight);
+	glutInitWindowPosition (200, 100);
+	glutCreateWindow ("GNA Engine 2012");
+	createGLUTMenus();
+	glutDisplayFunc(drawCallback);
+	glutIdleFunc(updateCallback);
+	glutReshapeFunc(windowResizeCallback);
+	glutKeyboardFunc(keyInputHandlerCallback);
+	glutMouseFunc(mouseInputHandlerCallback);
+	glutMotionFunc(mouseMotionHandlerCallback);
+	bs.initialize();
+	return _map.load();
+}

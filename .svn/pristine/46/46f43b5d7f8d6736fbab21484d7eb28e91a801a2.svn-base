@@ -1,0 +1,18 @@
+#include "overmindfitnessfunctor.h"
+
+OvermindFitnessFunctor::OvermindFitnessFunctor(DiscreteWorld2D* world, BoidSystem2f* bs, MLPerceptron5d* mlp)
+	:	_world(world),
+		_bs(bs),
+		_mlp(mlp) {
+
+}
+
+double OvermindFitnessFunctor::operator()(individual& ind) {
+	// Update multilayer perceptron.
+	ind.genes;
+	_mlp->setWeights(ind.genes);
+	// Update boid system.
+	_bs->update();
+	// Evaluate trial.
+	return double(rand()) / RAND_MAX;
+}

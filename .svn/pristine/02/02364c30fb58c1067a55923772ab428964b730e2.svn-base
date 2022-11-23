@@ -1,0 +1,191 @@
+#include "Evolution.h"
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <time.h>
+#include <map>
+
+#include "fitnessfunctor.h"
+
+using namespace std;
+
+Evolution::Evolution(FitnessFunctor* fitnessFunction){
+	//given an initial neural network, evolve it using the settings below: 
+
+	nrOfNodes = 512; //total number of nodes of a single Neural Network.
+	genSize = 100; //the size of each generation.
+	survivorSize = 10; //the number of survivors in each generation.
+	nrOfGens = 100; //the total number of generations before the algorithm stops.
+	allSlices = (genSize * (genSize+1)) / 2;
+	mutationProbability = 0.1; 
+	seed = 1337;
+	
+
+	vector<individual>::iterator git;
+	vector<double>::iterator git2;
+
+	//first, try to continue the evolution where you left off by trying to read EVOLUTION_RESULTS.txt.
+	int startFromGenerationNumber = readFromFile(pop);
+	//first, we create a new, random population:
+	//cout << startFromGenerationNumber << endl;
+	//the evolution-loop.
+	//timeStamp();
+
+	for(int genNr = startFromGenerationNumber; genNr <=nrOfGens; genNr++) {
+		// evaluate each individual. //takes the most amount of time by far
+		cout << "|";
+		for(git = pop.begin(); git != pop.end(); ++git) {
+			git->fitness = (*fitnessFunction)(*git);
+			cout << "-";
+		}
+		cout << "|" << endl;
+
+		// sort according to fitness.
+		sort(pop.begin(),pop.end(),[](individual& a, individual& b) {return a.fitness > b.fitness;});
+
+		// possible mutation of survivors
+		// fill the rest of the population with children of the survivors
+		makeBabies(pop);
+		// possible mutation of children
+		// print results to file, so when aborted, it can continue its work.
+		writeToFile(genNr,pop,seed);
+	}
+}
+
+void Evolution::makeBabies(vector<individual>& pop){
+	vector<individual> orgpop = pop; //copy of original pop
+	vector<individual>::iterator git;
+	int slice = genSize;
+	int currentSlices = genSize;
+	//child initialisation.
+	vector<double> child;
+	child.resize(nrOfNodes);
+	//indices initialisation.
+	vector<int> indices;
+	indices.resize(nrOfNodes);
+	for(int i = 0; i < nrOfNodes; ++i) indices[i] = i; //fill the vector with indices
+
+	//child-making loop.
+	for(int x = survivorSize-1; x < genSize; ++x){
+		
+		//ranking determines mating chance.
+		int mate = int(allSlices * double(rand()) / RAND_MAX); // a number between 0 and 100 + 99 + 98 ...
+		int otherMate = int(allSlices * double(rand()) / RAND_MAX); // a number between 0 and 100 + 99 + 98 ...
+
+		//cout << allSlices << endl;
+
+		int mateIndex = -1;
+		int otherMateIndex = -1;
+		slice = genSize; //100.
+		currentSlices = genSize; //100.
+
+		//cout << currentSlices << endl;
+		for(int y = 0; y < genSize; ++y){ //this loop is to link the random number to an actual index.
+			if(mateIndex != -1 && otherMateIndex != -1) break;
+			//cout << currentSlices << endl;	
+			if(mateIndex == -1 && mate <= currentSlices ){
+				mateIndex = y;
+			}
+			if(otherMateIndex == -1 && otherMate <= currentSlices){
+				otherMateIndex = y;
+			}
+			slice--;
+			currentSlices += slice;	
+			//cout << currentSlices << endl;	
+			
+			
+			
+			
+		}
+		if(mateIndex == -1 || otherMateIndex == -1){
+			cout << "something went wrong. currentslices is " << currentSlices << "/ 5050 " << endl;
+				mateIndex, otherMateIndex = 0;
+		}
+
+		random_shuffle(indices.begin(),indices.end()); //shuffle the indices
+		for(int i = 0; i< nrOfNodes/2; ++i){
+			if(mutationProbability > double(rand()) / RAND_MAX) pop[x].genes[i] = double(rand()) / RAND_MAX;
+			else pop[x].genes[i] = orgpop[mateIndex].genes[indices[i]];
+
+		}
+		for(int i = nrOfNodes/2; i<nrOfNodes; ++i) {
+			if(mutationProbability > double(rand()) / RAND_MAX) pop[x].genes[i] = double(rand()) / RAND_MAX;
+			else pop[x].genes[i] = orgpop[otherMateIndex].genes[indices[i]]; 
+		}
+		mateIndex, otherMateIndex = -1;
+	}
+}
+
+void Evolution::writeToFile(int nr, vector<individual>& p, int seed){
+	ofstream f;
+	f.open ("EVOLUTION_RESULTS.txt");
+	f << nr << endl << seed << endl;
+	for(int i = 0; i<genSize; ++i){
+		for(int j = 0; j<nrOfNodes; ++j) f << p[i].genes[j] << " ";
+		f << endl;
+	}
+	f.close();
+}
+
+int Evolution::readFromFile(vector<individual>& p){
+	ifstream f;
+
+	f.open("EVOLUTION_RESULTS.txt");
+	if(f.is_open()){
+		pop.resize(nrOfGens);
+		int currentGeneration;
+		f >> currentGeneration;
+		int usedSeed;
+		f >> usedSeed;
+		cout << "using existing seed, namely: " << usedSeed << endl;
+		srand(usedSeed);
+		//cout << currentGeneration;
+
+		for(int i = 0; i < genSize; ++i ){
+			pop[i].genes.resize(nrOfNodes);
+			for(int j = 0; j < nrOfNodes; ++j){
+				f >> pop[i].genes[j];
+				//cout << pop[i].genes[j];
+			}
+		}
+		
+		f.close();
+		return currentGeneration;
+	}
+	else {
+		srand(seed);
+		cout << "No file to continue from. Using seed " << seed << endl;
+		pop.resize(nrOfGens);
+		vector<individual>::iterator git;
+		vector<double>::iterator git2;
+		for(git = pop.begin(); git != pop.end(); ++git){
+			git->genes.resize(nrOfNodes);
+			git->fitness = 0;
+			for_each(git->genes.begin(), git->genes.end(), 
+				[](double& n) { n = double(rand()) / RAND_MAX; });
+		}
+		f.close();
+		return 1;
+	}
+	
+	
+	
+	
+
+
+	
+	
+}
+
+Evolution::~Evolution(){
+
+}
+
+//returns a random genome.
+std::vector<double> Evolution::createRandomGenome(){
+	 std::vector<double> v;
+	 v.assign(nrOfNodes,rand());
+	 return v;
+}
+
+

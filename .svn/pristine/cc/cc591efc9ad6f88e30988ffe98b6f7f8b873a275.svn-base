@@ -1,0 +1,71 @@
+#include <iostream>
+
+#define TRAINING_MODE	true
+#define CYCLES			2000
+#define INPUT			"input.txt"
+#define OUTPUT			"output.txt"
+#define VMF				"map.vmf"
+#define LAYERS			8, 16, 8, 16, 8
+
+#include "../../GUI/GUI.cpp"
+#include "../../World/src/world.h"
+#include "../../Boids/src/boids.h"
+#include "../../Neural Network/src/neuralnetwork.h"
+#include "../../Genetic Algorithm/Evolution.cpp"
+
+#include "overmindfitnessfunctor.h"
+
+using namespace std;
+
+/**
+ * 
+ **/
+int main(int argc, char **argv) {
+
+	// Discrete World.
+	DiscreteWorld2D world;
+	/*world.load(INPUT);
+	world.calculateWallProximity(PROXIMITY_RESOLUTION);
+	world.save(OUTPUT);*/
+	world.load(OUTPUT);
+	world.exportVMF(VMF);
+
+	// Boid System.
+	BoidSystem2f bs;
+	bs.initialize(&world);
+
+	// Multilayer Perceptron.
+	MLPerceptron5d mlp(LAYERS);
+
+	if(TRAINING_MODE) {
+		// Training mode.
+		OvermindFitnessFunctor off(&world, &bs, &mlp);
+		Evolution evolution(&off);
+		/*cout << "Running " << CYCLES << " cycles: ";
+		int mod = CYCLES / 50;
+		Vectorf input(8);
+		input.fill(0, true);
+		mlp.randomize();
+		Vectorf state(8);
+		for(int i = 0; i < CYCLES; ++i) {
+			if(i % mod == 0)
+				cout << "/";
+			// Update brain.
+			state = mlp.process(input);
+			mlp.randomize();
+			cout << state << endl;
+			// Update boids.
+			bs.update();
+		}
+		cout << " Done." << endl;
+		cout << endl;*/
+	} else {
+		// Graphical User Interface.
+		GUI* gui = GUI::Instance();
+		if(gui->initialize(argc, argv, &world, &bs))
+			gui->execute();
+	}
+
+	system("pause");
+	return 0;
+}

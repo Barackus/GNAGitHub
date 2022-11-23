@@ -1,0 +1,80 @@
+#ifndef BOID_H
+#define BOID_H
+
+#include <vector>
+
+#include "../../PhysMath/src/physmath.h"
+
+#include "boidrule.h"
+
+typedef int ColonyID;
+
+template<typename T, int D> class BoidSystem;
+
+/**
+ * 
+ **/
+template<typename T, int D>
+class Boid {
+private:
+	BoidSystem<T, D>* _bs;
+	ColonyID _cid;
+	std::vector<BoidRule<T, D>*> _rules;
+private:
+	Position<T, D> _pos;
+	Orientation<T, D> _ori;
+	Velocity<T, D> _vel;
+public:
+	inline const ColonyID getColonyID(void) const { return _cid; }
+	inline Position<T, D> getPosition(void) { return _pos; }
+	inline Orientation<T, D> getOrientation(void) { return _ori; }
+	inline Velocity<T, D> getVelocity(void) { return _vel; }
+public:
+	Boid(BoidSystem<T, D>*, ColonyID = 0);
+	~Boid(void);
+public:
+	void addRule(BoidRule<T, D>*);
+	void update(void);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Boid<T, D>::Boid(BoidSystem<T, D>* bs, ColonyID cid)
+	:	_bs(bs), _cid(cid) {}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Boid<T, D>::~Boid(void) {
+	// Clean up our rule set.
+	std::vector<BoidRule<T, D>*>::iterator it;
+	for(it = _rules.begin(); it != _rules.end(); ++it)
+		delete *it;
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+void Boid<T, D>::addRule(BoidRule<T, D>* rule) {
+	_rules.push_back(rule);
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+void Boid<T, D>::update(void) {
+	Velocity<T, D> result;
+	std::vector<BoidRule<T, D>*>::iterator it;
+	for(it = _rules.begin(); it != _rules.end(); ++it)
+		result += (**it)();
+	result.normalize();
+	_vel = result;
+	_pos += _vel * Scalar<T>(0.01f);
+}
+
+#endif

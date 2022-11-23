@@ -1,0 +1,13 @@
+
+#include "Evolution.h"
+
+
+int main(void)
+{
+	Evolution();
+	system("pause");
+	return 0;
+	
+}
+
+

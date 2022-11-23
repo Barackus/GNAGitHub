@@ -1,0 +1,54 @@
+#ifndef GUI_H
+#define GUI_H
+
+#include <string>
+
+#include "../World/src/world.h"
+#include "../Boids/src/boids.h"
+
+class GUI {
+protected:
+	GUI();
+	~GUI();
+public:
+	inline static GUI* Instance() {
+		if (instance==NULL) {
+			instance = new GUI();
+		}
+		return instance;
+	}
+	bool initialize(int argc, char **argv);
+	void execute();
+
+	void displayText(float x, float y, std::string text);
+	void createGLUTMenus();
+
+	inline static void drawCallback() {														instance->draw(); }
+	inline static void updateCallback() {													instance->update(); }
+	inline static void processMenuEventsCallback(int option) {								instance->processMenuEvents(option); }
+	inline static void windowResizeCallback (int x, int y) {								instance->windowResize(x, y); }
+	inline static void mouseMotionHandlerCallback(int mx, int my) {							instance->mouseMotionHandler(mx, my); }
+	inline static void mouseInputHandlerCallback(int button, int state, int mx, int my) {	instance->mouseInputHandler(button, state, mx, my); }
+	inline static void keyInputHandlerCallback(unsigned char key, int x, int y) {			instance->keyInputHandler(key, x, y); }
+
+	void draw();
+	void update();
+	void processMenuEvents(int);
+	void windowResize (int, int);
+	void mouseMotionHandler(int, int);
+	void mouseInputHandler(int, int, int, int);
+	void keyInputHandler(unsigned char, int, int);
+
+	void drawWorld();
+	void drawBoids();
+
+protected:
+	int				_screenwidth;
+	int				_screenheight;
+	DiscreteWorld2D	_world;
+	BoidSystem2f	_bs;
+
+private:
+	static GUI* instance;
+};
+#endif

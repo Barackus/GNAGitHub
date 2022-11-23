@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Common">
+      <UniqueIdentifier>{b6284b7e-9ce0-4268-bc2b-57d87286a4da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Common\Serializable">
+      <UniqueIdentifier>{a47144cb-4c7d-4b52-a06b-b0902f476d72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Common">
+      <UniqueIdentifier>{ee03f3b1-e22a-49a2-989c-241538633dfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Common\Serializable">
+      <UniqueIdentifier>{7bb76be2-30e6-4e67-b64c-0c048e39748b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GridMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Serializable\AddressTranslator.cpp">
+      <Filter>Source Files\Common\Serializable</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Serializable\SerialReader.cpp">
+      <Filter>Source Files\Common\Serializable</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Serializable\SerialReaderASCII.cpp">
+      <Filter>Source Files\Common\Serializable</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GridMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Serializable\AddressTranslator.h">
+      <Filter>Header Files\Common\Serializable</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Serializable\Serializer.h">
+      <Filter>Header Files\Common\Serializable</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Serializable\SerialReader.h">
+      <Filter>Header Files\Common\Serializable</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Serializable\SerialReaderASCII.h">
+      <Filter>Header Files\Common\Serializable</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

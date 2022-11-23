@@ -1,0 +1,48 @@
+#ifndef ALIGNMENTRULE_H
+#define ALIGNMENTRULE_H
+
+#define ALIGNMENT_WEIGHT	3.00f
+#define ALIGNMENT_RADIUS	2.0f
+
+#include "../boidrule.h"
+
+#include "../boid.h"
+#include "../boidsystem.h"
+
+/**
+ * 
+ **/
+template<typename T, int D>
+class AlignmentRule : public BoidRule<T, D> {
+	pmVector<T>* calculate(void);
+public:
+	AlignmentRule(Boid<T, D>*, BoidSystem<T, D>*);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+AlignmentRule<T, D>::AlignmentRule(Boid<T, D>* boid, BoidSystem<T, D>* bs)
+	:	BoidRule<T, D>(boid, bs, ALIGNMENT_WEIGHT) {}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+pmVector<T>* AlignmentRule<T, D>::calculate(void) {
+	_result->fill(0);
+	// Get closest neighbors.
+	std::vector<Boid<T, D>*> neighbors =
+		_boid->getNeighbors(ALIGNMENT_RADIUS, _boid->getColonyID());
+	// Calculate average orientation.
+	std::vector<Boid<T, D>*>::iterator it;
+	for(it = neighbors.begin(); it != neighbors.end(); ++it)
+		_result->add(*(*it)->getpmVelocity());
+	// Return normalized and weighted alignment vector.
+	if(!_result->isNil())
+		_result->normalize(_weight);
+	return _result;
+}
+
+#endif

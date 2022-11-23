@@ -1,0 +1,84 @@
+#ifndef PHYSMATH_H
+#define PHYSMATH_H
+
+// Includes for tensors.
+#include "tensor/tensor.h"
+#include "tensor/matrix.h"
+#include "tensor/vector.h"
+#include "tensor/scalar.h"
+
+// Includes for physics stuff.
+#include "physics/position.h"
+#include "physics/orientation.h"
+#include "physics/velocity.h"
+#include "physics/acceleration.h"
+
+// Tensor type definitions.
+typedef Tensor<char>	Tensorc;
+typedef Tensor<short>	Tensors;
+typedef Tensor<int>		Tensori;
+typedef Tensor<long>	Tensorl;
+typedef Tensor<float>	Tensorf;
+typedef Tensor<double>	Tensord;
+typedef Tensor<bool>	Tensorb;
+
+// Matrix type definitions.
+typedef Matrix<char>	Matrixc;
+typedef Matrix<short>	Matrixs;
+typedef Matrix<int>		Matrixi;
+typedef Matrix<long>	Matrixl;
+typedef Matrix<float>	Matrixf;
+typedef Matrix<double>	Matrixd;
+typedef Matrix<bool>	Matrixb;
+
+// Vector type definitions.
+typedef Vector<char>	Vectorc;
+typedef Vector<short>	Vectors;
+typedef Vector<int>		Vectori;
+typedef Vector<long>	Vectorl;
+typedef Vector<float>	Vectorf;
+typedef Vector<double>	Vectord;
+typedef Vector<bool>	Vectorb;
+
+// Scalar type definitions.
+typedef Scalar<char>	Scalarc;
+typedef Scalar<short>	Scalars;
+typedef Scalar<int>		Scalari;
+typedef Scalar<long>	Scalarl;
+typedef Scalar<float>	Scalarf;
+typedef Scalar<double>	Scalard;
+typedef Scalar<bool>	Scalarb;
+
+// Position type definitions.
+typedef Position<int, 3>		Position3i;
+typedef Position<float, 3>		Position3f;
+typedef Position<double, 3>		Position3d;
+typedef Position<int, 2>		Position2i;
+typedef Position<float, 2>		Position2f;
+typedef Position<double, 2>		Position2d;
+
+// Orientation type definitions.
+typedef Orientation<int, 3>		Orientation3i;
+typedef Orientation<float, 3>	Orientation3f;
+typedef Orientation<double, 3>	Orientation3d;
+typedef Orientation<int, 2>		Orientation2i;
+typedef Orientation<float, 2>	Orientation2f;
+typedef Orientation<double, 2>	Orientation2d;
+
+// Velocity type definitions.
+typedef Velocity<int, 3>		Velocity3i;
+typedef Velocity<float, 3>		Velocity3f;
+typedef Velocity<double, 3>		Velocity3d;
+typedef Velocity<int, 2>		Velocity2i;
+typedef Velocity<float, 2>		Velocity2f;
+typedef Velocity<double, 2>		Velocity2d;
+
+// Acceleration type definitions.
+typedef Acceleration<int, 3>		Acceleration3i;
+typedef Acceleration<float, 3>		Acceleration3f;
+typedef Acceleration<double, 3>		Acceleration3d;
+typedef Acceleration<int, 2>		Acceleration2i;
+typedef Acceleration<float, 2>		Acceleration2f;
+typedef Acceleration<double, 2>		Acceleration2d;
+
+#endif

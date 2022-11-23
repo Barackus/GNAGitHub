@@ -1,0 +1,58 @@
+#ifndef SCALAR_H
+#define SCALAR_H
+
+#include "tensor.h"
+
+/**
+ * 
+ **/
+template<typename T>
+class Scalar : public Tensor<T> {
+public:
+	Scalar(const Tensor<T>&);
+	Scalar(void);
+	Scalar(T);
+	const T get(void) const;
+	void set(const T);
+};
+
+/**
+ * 
+ **/
+template<typename T>
+Scalar<T>::Scalar(const Tensor<T>& other)
+	:	Tensor<T>(other) {}
+
+/**
+ * 
+ **/
+template<typename T>
+Scalar<T>::Scalar(void)
+	:	Tensor<T>(0, 1) {}
+
+/**
+ * 
+ **/
+template<typename T>
+Scalar<T>::Scalar(T t)
+	:	Tensor<T>(0, 1) {
+	set(t);
+}
+
+/**
+ * 
+ **/
+template<typename T>
+const T Scalar<T>::get(void) const {
+	return Tensor<T>::get(0);
+}
+
+/**
+ * 
+ **/
+template<typename T>
+void Scalar<T>::set(const T value) {
+	Tensor<T>::set(value, 0);
+}
+
+#endif

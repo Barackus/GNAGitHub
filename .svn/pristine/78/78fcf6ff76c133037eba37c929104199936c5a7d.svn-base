@@ -1,0 +1,78 @@
+#ifndef GUI_H
+#define GUI_H
+
+#include <string>
+
+#include "../World/src/world.h"
+#include "../Boids/src/boids.h"
+#include "../Neural Network/src/neuralnetwork.h"
+
+class GUI {
+protected:
+	GUI();
+	~GUI();
+public:
+	static GUI* Instance(void);
+	bool initialize(int argc, char **argv, DiscreteWorld2D*, BoidSystem2f*, bool brain = false);
+	void execute();
+
+	void displayText(float x, float y, std::string text);
+	void createGLUTMenus();
+
+	inline static void drawCallback() {														_instance->draw(); }
+	inline static void updateCallback() {													_instance->update(); }
+	inline static void processMenuEventsCallback(int option) {								_instance->processMenuEvents(option); }
+	inline static void windowResizeCallback (int x, int y) {								_instance->windowResize(x, y); }
+	inline static void mouseMotionHandlerCallback(int mx, int my) {							_instance->mouseMotionHandler(mx, my); }
+	inline static void mouseInputHandlerCallback(int button, int state, int mx, int my) {	_instance->mouseInputHandler(button, state, mx, my); }
+	inline static void keyInputHandlerCallback(unsigned char key, int x, int y) {			_instance->keyInputHandler(key, x, y); }
+
+	void draw();
+	void update();
+	void processMenuEvents(int);
+	void windowResize (int, int);
+	void mouseMotionHandler(int, int);
+	void mouseInputHandler(int, int, int, int);
+	void keyInputHandler(unsigned char, int, int);
+
+	void drawWorld();
+	void drawBombs();
+	void drawSafezones();
+	void drawBoids();
+	void drawMouse();
+
+	void toggleFullscreen();
+	inline void togglePause() {
+		_paused = !_paused;
+	}
+
+	inline void setMLP(MLPerceptron5d* mlp) {
+		_mlp = mlp;
+	}
+
+	inline void setBrainEnabled(bool brainEnabled) {
+		_brainEnabled = brainEnabled;
+	}
+
+protected:
+	int					_screenwidth;
+	int					_screenheight;
+	DiscreteWorld2D*	_world;
+	BoidSystem2f*		_bs;
+	int					_frame;
+	int					_mouseX;
+	int					_mouseY;
+	bool				_mouseEnabled;
+	bool				_fullscreen;
+	int					_windowpmPositionX;
+	int					_windowpmPositionY;
+	bool				_brainEnabled;
+	MLPerceptron5d*		_mlp;
+	bool				_paused;
+
+	void drawCircle(float x, float y, float r);
+
+private:
+	static GUI* _instance;
+};
+#endif

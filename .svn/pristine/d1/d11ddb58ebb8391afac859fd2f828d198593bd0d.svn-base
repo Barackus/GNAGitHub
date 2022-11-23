@@ -1,0 +1,48 @@
+#include <iostream>
+
+#define TRAINING_MODE	false
+#define INPUT			"input.txt"
+#define OUTPUT			"output.txt"
+#define VMF				"map.vmf"
+#define LAYERS			8, 16, 8, 16, 8
+
+#include "../../GUI/GUI.cpp"
+#include "../../World/src/world.h"
+#include "../../Boids/src/boids.h"
+#include "../../Neural Network/src/neuralnetwork.h"
+
+using namespace std;
+
+/**
+ * 
+ **/
+int main(int argc, char **argv) {
+
+	// Discrete World.
+	DiscreteWorld2D world;
+	/*world.load(INPUT);
+	world.calculateWallProximity(PROXIMITY_RESOLUTION);
+	world.save(OUTPUT);*/
+	world.load(OUTPUT);
+	world.exportVMF(VMF);
+
+	// Boid System.
+	BoidSystem2f bs;
+	bs.initialize(&world);
+
+	// Multilayer Perceptron.
+	MLPerceptron5 mlp(LAYERS);
+
+	if(TRAINING_MODE) {
+		// Training mode.
+
+	} else {
+		// Graphical User Interface.
+		GUI* gui = GUI::Instance();
+		if(gui->initialize(argc, argv, &world, &bs))
+			gui->execute();
+	}
+
+	system("pause");
+	return 0;
+}

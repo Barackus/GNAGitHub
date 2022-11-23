@@ -1,0 +1,86 @@
+#include "SerialReaderASCII.h"
+#include <sstream>
+#include <exception>
+
+using namespace std;
+
+/**
+ * Constructor.
+ * @param stream The stream to deserialize from
+ **/
+SerialReaderASCII::SerialReaderASCII(istream* stream)
+	: SerialReader(stream) {}
+
+/**
+ * The read functions are used to deserialize a
+ * number of basic data types from the stream.
+ * @param key	The name of the data member
+ * @param dest	The data member that is to be overwritten
+ **/
+void SerialReaderASCII::read(const string key, bool& dest) {
+	checkKey(key);
+	*_stream >> dest;
+}
+void SerialReaderASCII::read(const string key, char& dest) {
+	checkKey(key);
+	*_stream >> dest;
+}
+void SerialReaderASCII::read(const string key, short& dest) {
+	checkKey(key); 
+	*_stream >> dest;
+}
+void SerialReaderASCII::read(const string key, int& dest) {
+	checkKey(key); 
+	*_stream >> dest;
+}
+void SerialReaderASCII::read(const string key, long& dest) {
+	checkKey(key); 
+	*_stream >> dest;
+}
+void SerialReaderASCII::read(const string key, float& dest) {
+	checkKey(key); 
+	*_stream >> dest;
+}
+void SerialReaderASCII::read(const string key, double& dest) {
+	checkKey(key); 
+	*_stream >> dest;
+}
+void SerialReaderASCII::read(const string key, string& dest) {
+	checkKey(key); 
+	unsigned int len;
+	*_stream >> len;
+	if (len > 0) {
+		*_stream >> dest;
+	}
+	while(dest.size() < len) {
+		string tmp;
+		*_stream >> tmp;
+		dest.append(" ");
+		dest.append(tmp);
+	}
+}
+void SerialReaderASCII::read(const string key, void*& dest) {
+	checkKey(key); 
+	int tmp;
+	*_stream >> tmp;
+	dest = (void*) tmp;
+}
+
+// Read's a char without label
+void SerialReaderASCII::read(char& dest) {
+	*_stream >> dest;
+}
+
+/**
+ * Checks whether the expected key matches the key that is read
+ */
+void SerialReaderASCII::checkKey(const string key) {
+	string tmp;
+	*_stream >> tmp;
+	if (tmp != key) {
+		stringstream ss;
+		ss << "Keys don't match, \"" << tmp << "\" found but \"" << key << "\" expected.";
+		string msg = ss.str();
+		throw msg;
+	}
+}

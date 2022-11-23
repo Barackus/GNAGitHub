@@ -1,0 +1,55 @@
+#ifndef POSITION_H
+#define POSITION_H
+
+template<typename T, int D>
+class Position : public Vector<T> {
+public:
+	Position(void);
+	Position(T, T = 0, T = 0, T = 0);
+	Position(T, ...);
+public:
+	T distance(const Position<T, D>&);
+};
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Position<T, D>::Position(void)
+	:	Vector<T>(D) {}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Position<T, D>::Position(T a, T b, T c, T d)
+	:	Vector<T>(D) {
+	if(D >= 1) set(a, 0);
+	if(D >= 2) set(b, 1);
+	if(D >= 3) set(c, 2);
+	if(D >= 4) set(d, 3);
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+Position<T, D>::Position(T dim, ...)
+	:	Vector<T>(D) {
+	va_list va;
+	va_start(va, dim);
+	set(dim, 0);
+	for(int i = 1; i < D; ++i)
+		set(va_arg(va, T), i);
+	va_end(va);
+}
+
+/**
+ * 
+ **/
+template<typename T, int D>
+T Position<T, D>::distance(const Position<T, D>& p) {
+	return Vector<T>(*this - p).magnitude();
+}
+
+#endif

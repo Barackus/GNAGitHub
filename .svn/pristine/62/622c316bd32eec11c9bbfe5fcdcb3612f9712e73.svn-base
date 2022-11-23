@@ -1,0 +1,35 @@
+#ifndef SERIALREADER_H
+#define SERIALREADER_H
+
+#include <iostream>
+#include <string>
+
+#include "Serializer.h"
+#include "AddressTranslator.h"
+
+/**
+ * SerialReaders are used to deserialize (read) objects
+ * from any kind of istream.
+ **/
+class SerialReader : public Serializer, public AddressTranslator {
+protected:
+	std::istream* _stream;					// The stream to deserialize from.
+	SerialReader(std::istream* stream);		// Constructor.
+public:
+	virtual ~SerialReader(void) {}			// Destructor.
+	/**
+	 * The read functions are used to deserialize a
+	 * number of basic data types from the stream.
+	 **/
+	virtual void read(const std::string, bool&) = 0;
+	virtual void read(const std::string, char&) = 0;
+	virtual void read(const std::string, short&) = 0;
+	virtual void read(const std::string, int&) = 0;
+	virtual void read(const std::string, long&) = 0;
+	virtual void read(const std::string, float&) = 0;
+	virtual void read(const std::string, double&) = 0;
+	virtual void read(const std::string, std::string&) = 0;
+	virtual void read(const std::string, void*&) = 0;
+};
+
+#endif

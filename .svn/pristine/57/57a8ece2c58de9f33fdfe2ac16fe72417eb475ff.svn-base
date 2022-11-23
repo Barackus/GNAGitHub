@@ -1,0 +1,14 @@
+#ifndef SERIALIZER_H
+#define SERIALIZER_H
+
+/**
+ * Serializers are meant to read and write
+ * objects from and to any kind of stream.
+ **/
+class Serializer {
+protected:
+	Serializer(void) {};	// Constructor.
+	~Serializer(void) {}	// Destructor.
+};
+
+#endif
